@@ -53,6 +53,18 @@ app.get('/about', (req, res) => {
     res.render('about');
 });
 
+// Add Index Page
+app.get('/ideas', (req, res) => {
+    Idea.find({})
+        .sort({date:'descending'})
+        .then(ideas => {
+            res.render('ideas/index', {
+                ideas: ideas
+            });
+        });
+    
+}); 
+
 // Add idea form
 app.get('/ideas/add', (req, res) => {
     res.render('ideas/add');
