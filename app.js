@@ -1,10 +1,23 @@
 /* Nodemon continuously watches server */
 
 const express = require('express'),
-    exphbs = require('express-handlebars');
+    exphbs = require('express-handlebars'),
+    bodyParser = require('body-parser'),
+    mongoose = require('mongoose');
 
 /* Initializes application */
 const app = express();
+
+/* Connect to Mongoose */
+mongoose.connect('mongodb://localhost/vidjot-dev')
+.then( _ => {
+    console.log("MongoDB Connected");
+})
+.catch(err => console.log(err));
+
+// Load Idea Model
+require('./models/Ideas');
+const Idea = mongoose.model('ideas');
 
 /* Handlebars Middleware */
 app.engine('handlebars', exphbs({
@@ -12,14 +25,10 @@ app.engine('handlebars', exphbs({
 }));
 app.set('view engine', 'handlebars');
 
-/* How middleware works */
-app.use(function(req, res, next) {
- //   console.log(Date.now());
+// Body Parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-    /* req.name globally becomes this */
-    req.name = 'Brad Traversy';
-    next();
-});
 
 /* Index Route */
 /* Get request goes to webpage and pulls content */
@@ -43,6 +52,35 @@ app.get('/', (req, res) => {
 app.get('/about', (req, res) => {
     res.render('about');
 });
+
+// Add idea form
+app.get('/ideas/add', (req, res) => {
+    res.render('ideas/add');
+});
+
+// Process form
+app.post('/ideas', (req, res) => {
+    let errors = [];
+
+    if (!req.body.title) {
+        errors.push({text: 'Please add a title'});
+    }
+
+    if (!req.body.details) {
+        errors.push({text: 'Please add some details'});
+    }
+
+    if (errors.length > 0) {
+        res.render('ideas/add', {
+            errors: errors,
+            title: req.body.title,
+            details: req.body.details
+        })
+    } else  {
+        res.send('passed');
+    }
+});
+
 
 const port = 5000;
 
